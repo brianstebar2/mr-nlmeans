@@ -78,8 +78,6 @@ public class NLMeansMapper extends
                 float denoised_blue_pixel = compute_denoised_pixel_seq(input_blue, i1, j1, value,
                         sim_window_1_blue, radio_search, radio_sim, degree, kernel);
                 newImage.setPixel(i,j,2,denoised_blue_pixel);
-
-
             }
         }
 
@@ -114,6 +112,7 @@ public class NLMeansMapper extends
                                        float[] kernel) {
         int original_width = image.getWidth();
         int original_height = image.getHeight();
+
         // Initialize search window bounds for this pixel
         // DUPLICATE CALCULATIONS (these could be passed in and reused)
         int r_min = ((x-radio_search) > radio_sim) ? (x-radio_search) : radio_sim;
@@ -164,9 +163,14 @@ public class NLMeansMapper extends
         average = average + (w_max * padded_input[y * padded_input_width + x]);
         s_weight = s_weight + w_max;
 
+        // System.out.println("Average: " + average + "\ns_weight: " + s_weight);
+        // float result = (float)Math.floor(average / s_weight);
+        // System.out.println(" - Returning " + result);
+        // System.out.println(" - Other returning: " + padded_input[y * padded_input_width + x]);
+
         // Determine noise value for current pixel (if s_weight > 0)
         if(s_weight > 0)
-            return (int)Math.floor(average / s_weight);
+            return average / s_weight;
         else
             return padded_input[y * padded_input_width + x];
     }
