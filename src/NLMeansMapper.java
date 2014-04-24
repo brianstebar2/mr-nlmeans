@@ -47,7 +47,7 @@ public class NLMeansMapper extends
 
         float[] kernel = generate_kernel_seq(radio_sim);
 
-        float[] input_red, input_green, input_blue;
+        int[] input_red, input_green, input_blue;
         input_red = generate_padded_color_array(value, 0, radio_sim, radio_sim, 0);
         input_green = generate_padded_color_array(value, 1, radio_sim, radio_sim, 0);
         input_blue = generate_padded_color_array(value, 2, radio_sim, radio_sim, 0);
@@ -60,7 +60,7 @@ public class NLMeansMapper extends
                 int j1 = j + radio_sim;
 
 
-                float[] sim_window_1_red, sim_window_1_green, sim_window_1_blue;
+                int[] sim_window_1_red, sim_window_1_green, sim_window_1_blue;
                 // Populate the similarity window for each color channel
                 sim_window_1_red = populate_sim_window_seq(radio_sim, input_red, padded_input_width, i1, j1);
                 sim_window_1_green = populate_sim_window_seq(radio_sim, input_green, padded_input_width, i1, j1);
@@ -68,16 +68,16 @@ public class NLMeansMapper extends
 
 
                 // Do denoising for each color channel
-                float denoised_red_pixel = compute_denoised_pixel_seq(input_red, i1, j1, value,
+                int denoised_red_pixel = compute_denoised_pixel_seq(input_red, i1, j1, value,
                         sim_window_1_red, radio_search, radio_sim, degree, kernel);
-                newImage.setPixel(i,j,0,denoised_red_pixel);
+                newImage.setPixel(i,j,0,((float)denoised_red_pixel/255));
 
-                float denoised_green_pixel = compute_denoised_pixel_seq(input_green, i1, j1, value,
+                int denoised_green_pixel = compute_denoised_pixel_seq(input_green, i1, j1, value,
                         sim_window_1_green, radio_search, radio_sim, degree, kernel);
-                newImage.setPixel(i,j,1,denoised_green_pixel);
-                float denoised_blue_pixel = compute_denoised_pixel_seq(input_blue, i1, j1, value,
+                newImage.setPixel(i,j,1,((float)denoised_green_pixel/255));
+                int denoised_blue_pixel = compute_denoised_pixel_seq(input_blue, i1, j1, value,
                         sim_window_1_blue, radio_search, radio_sim, degree, kernel);
-                newImage.setPixel(i,j,2,denoised_blue_pixel);
+                newImage.setPixel(i,j,2,((float)denoised_blue_pixel/255));
             }
         }
 
@@ -106,8 +106,8 @@ public class NLMeansMapper extends
      *   degree          - degree of filtering (h)
      *   kernel          - kernel to assist in properly weighting noise values
      */
-    static float compute_denoised_pixel_seq(float[] padded_input, int x, int y,
-                                       FloatImage image, float[] sim_window_1,
+    static int compute_denoised_pixel_seq(int[] padded_input, int x, int y,
+                                       FloatImage image, int[] sim_window_1,
                                        int radio_search, int radio_sim, int degree,
                                        float[] kernel) {
         int original_width = image.getWidth();
@@ -136,7 +136,7 @@ public class NLMeansMapper extends
                 if(r == x && s == y) continue;   // Skip checking this pixel against itself
 
                 // Populate second similarity window
-                float[] sim_window_2 = populate_sim_window_seq(radio_sim, padded_input, padded_input_width, r, s);
+                int[] sim_window_2 = populate_sim_window_seq(radio_sim, padded_input, padded_input_width, r, s);
 
                 // Calculate sum d
                 float sum = 0;
@@ -165,21 +165,21 @@ public class NLMeansMapper extends
 
         // Determine noise value for current pixel (if s_weight > 0)
         if(s_weight > 0)
-            return average / s_weight;
+            return (int)Math.floor(average / s_weight);
         else
             return padded_input[y * padded_input_width + x];
     }
 
-    private static float[] generate_padded_color_array(FloatImage image, int channel, int pad_x, int pad_y, float pad_value) {
+    private static int[] generate_padded_color_array(FloatImage image, int channel, int pad_x, int pad_y, int pad_value) {
 
         int height = image.getHeight(), width = image.getWidth();
         int new_height = 2*pad_y + height;
         int new_width = 2* pad_x + width;
-        float[] paddedImage = new float[new_height*new_width];
+        int[] paddedImage = new int[new_height*new_width];
         for (int i=0;i< new_width; i++) {
             for (int j=0;j<new_height; j++) {
                 if ((i >= pad_x) && (i < (width + pad_x)) && (j >= pad_y) && (j < (height + pad_y))) {
-                    paddedImage[j * new_width + i] = image.getPixel(i-pad_x, j-pad_y, channel);
+                    paddedImage[j * new_width + i] = Math.round(255*image.getPixel(i-pad_x, j-pad_y, channel));
                 }
                 else {
                     paddedImage[j * new_width + i] = pad_value;
@@ -244,12 +244,12 @@ public class NLMeansMapper extends
      *   pole_y              - Y coordinate of the pixel in the input array that should
      *                         be the center pixel of the similarity window
      */
-    static float[] populate_sim_window_seq(int radio_sim,
-                                 float[] padded_input, int padded_input_width, int pole_x, int pole_y) {
+    static int[] populate_sim_window_seq(int radio_sim,
+                                 int[] padded_input, int padded_input_width, int pole_x, int pole_y) {
 
         // Calculate dimensions of similarity window
         int sim_diam = 2*radio_sim + 1;  // DUPLICATE CALCULATION
-        float[] sim_window = new float[sim_diam * sim_diam];
+        int[] sim_window = new int[sim_diam * sim_diam];
 
         // Copy values from input array to similarity window
         for(int i = 0; i < sim_diam; i++) {
