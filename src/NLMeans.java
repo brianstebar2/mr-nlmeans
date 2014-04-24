@@ -70,6 +70,7 @@ public class NLMeans extends Configured implements Tool {
         job.getConfiguration().set("radio_sim","3");
         job.getConfiguration().set("radio_search","7");
         job.getConfiguration().set("degree","30");
+        job.getConfiguration().set("output_path", args[2]);
 
         FileOutputFormat.setOutputPath(job, new Path(args[2]));
         FileInputFormat.setInputPaths(job, new Path(args[1]));
