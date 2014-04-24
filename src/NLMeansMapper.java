@@ -163,11 +163,6 @@ public class NLMeansMapper extends
         average = average + (w_max * padded_input[y * padded_input_width + x]);
         s_weight = s_weight + w_max;
 
-        // System.out.println("Average: " + average + "\ns_weight: " + s_weight);
-        // float result = (float)Math.floor(average / s_weight);
-        // System.out.println(" - Returning " + result);
-        // System.out.println(" - Other returning: " + padded_input[y * padded_input_width + x]);
-
         // Determine noise value for current pixel (if s_weight > 0)
         if(s_weight > 0)
             return average / s_weight;
